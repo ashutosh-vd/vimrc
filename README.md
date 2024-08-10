@@ -1,1 +1,1 @@
-vim cinfig
+vim config
