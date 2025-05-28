@@ -14,7 +14,6 @@ set relativenumber
 set cino+=L0 
 syntax on
 filetype indent on
-filetype off
 setlocal indentkeys-=:
 
 
@@ -61,8 +60,8 @@ filetype plugin indent on    " required
 
 let g:gruvbox_contrast_light='medium'
 "let g:gruvbox_contrast_dark='soft'
-let g:gruvbox_number_column='fg0'
-let g:gruvbox_color_column='bg0'
+"let g:gruvbox_number_column='fg0'
+"let g:gruvbox_color_column='bg0'
 autocmd vimenter * ++nested colorscheme gruvbox
 set background=light
 "Use 24-bit (true-color) mode in Vim/Neovim when outside tmux.
@@ -88,53 +87,28 @@ endif
 inoremap {<CR>  {<CR>}<Esc>O
 inoremap {}     {}
 imap jk         <Esc>
-map <C-a> <esc>ggVG<CR>
+" map <C-c> <esc>ggVG"+y<CR>
 set belloff=all
+if !empty($WAYLAND_DISPLAY) && !empty($SWAYSOCK)
+  " In Sway Wayland session: Ctrl-A yanks entire buffer to system clipboard
+  nnoremap <C-a> <Esc>:%y+<CR>:call system('wl-copy', getreg('+'))<CR>
+else
+  nnoremap <C-a> <Esc>ggVG"+y<CR>
+endif
+
+
 
 "Compile and run
 "Note that the next uncommented line requires the build.sh script!
 "Replace it with the commented line below if you don't have it
-set makeprg=g++\ -static\ -DDEBUG\ -lm\ -s\ -x\ c++\ -Wall\ -Wextra\ -O2\ -std=c++17\ -o\ %:r\ %
+set makeprg=g++\ -static\ -DDEBUG\ -lm\ -fsanitize=undefined,address\ -s\ -x\ c++\ -Wall\ -Wextra\ -O2\ -std=c++17\ -o\ %:r\ %
 "set makeprg=build.sh\ %:r
 autocmd filetype cpp nnoremap <F9> :w <bar> Make <CR>
 "autocmd filetype cpp nnoremap <F9> :w <bar> !build.sh %:r <CR>
 autocmd filetype cpp nnoremap <F7> :vertical terminal ++shell ++cols=44 ./%:r<CR>
-autocmd filetype cpp nnoremap <F8> :!time ./%:r<CR>
-
-
-
+autocmd filetype cpp nnoremap <F8> :vertical terminal ++shell ++cols=44 ./%:r < t.in<CR>
+"autocmd filetype cpp nnoremap <F8> :!time ./%:r < t.in<CR>
 "Append template to new C++ files
 autocmd BufNewFile *.cpp 0r /home/vasu/vimcp/Library/Template.cpp
-
-
-
 execute pathogen#infect()
 
-"Clipboard configuration
-let s:clip = '/mnt/c/Windows/System32/clip.exe'  " change this path according to your mount point
-if executable(s:clip)
-        augroup WSLYank
-                    autocmd!
-                            autocmd TextYankPost * if v:event.operator ==# 'y' | call system(s:clip, @0) | endif
-                                augroup END
-                            endif
-
-        au BufNewFile,BufRead *.tex
-            \ set nocursorline |
-            \ set nornu |
-            \ set number |
-            \ let g:loaded_matchparen=1 |
-
-
- 
-if &term =~ "xterm\\|rxvt"
-  " use an orange cursor in insert mode
-  let &t_SI = "\<Esc>]12;orange\x7"
-  " use a red cursor otherwise
-  let &t_EI = "\<Esc>]12;red\x7"
-  silent !echo -ne "\033]12;red\007"
-  " reset cursor when vim exits
-  autocmd VimLeave * silent !echo -ne "\033]112\007"
-  " use \003]12;gray\007 for gnome-terminal and rxvt up to version 9.21
-endif
- 
